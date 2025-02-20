@@ -1,0 +1,93 @@
+{
+  "node": {
+    "7f0cf3716229a8c0a3a46ab407b161c00c14658cec": {
+      "workers": {
+        "app/(dashboard)/page": {
+          "moduleId": "[project]/.next-internal/server/app/(dashboard)/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/(login)/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/(dashboard)/page": "action-browser"
+      }
+    },
+    "7f722f2912baa523d5723723a9459eae63311555d3": {
+      "workers": {
+        "app/(dashboard)/page": {
+          "moduleId": "[project]/.next-internal/server/app/(dashboard)/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/(login)/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/(dashboard)/page": "action-browser"
+      }
+    },
+    "7fa60cfdd05be5f5c218519e44179d2d117f2364b3": {
+      "workers": {
+        "app/(dashboard)/page": {
+          "moduleId": "[project]/.next-internal/server/app/(dashboard)/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/(login)/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/(dashboard)/page": "action-browser"
+      }
+    },
+    "7fad59bf8880b0f0de331f6a9ec8a2bf320e0393ca": {
+      "workers": {
+        "app/(dashboard)/page": {
+          "moduleId": "[project]/.next-internal/server/app/(dashboard)/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/(login)/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/(dashboard)/page": "action-browser"
+      }
+    },
+    "7f7c5288367ec5e73a89700c972870f84bfa26943a": {
+      "workers": {
+        "app/(dashboard)/page": {
+          "moduleId": "[project]/.next-internal/server/app/(dashboard)/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/(login)/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/(dashboard)/page": "action-browser"
+      }
+    },
+    "7fc1d802dab8a9cb63f4b3e379db253a9937bfb2b3": {
+      "workers": {
+        "app/(dashboard)/page": {
+          "moduleId": "[project]/.next-internal/server/app/(dashboard)/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/(login)/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/(dashboard)/page": "action-browser"
+      }
+    },
+    "7fc6b0c2e911ff463d54cf588746cd21f356afbbbd": {
+      "workers": {
+        "app/(dashboard)/page": {
+          "moduleId": "[project]/.next-internal/server/app/(dashboard)/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/(login)/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/(dashboard)/page": "action-browser"
+      }
+    },
+    "00723162926cf30d73e09bcf99feb388c6cdaa92ab": {
+      "workers": {
+        "app/(dashboard)/page": {
+          "moduleId": "[project]/.next-internal/server/app/(dashboard)/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/(login)/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/(dashboard)/page": "action-browser"
+      }
+    }
+  },
+  "edge": {}
+}

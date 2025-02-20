@@ -5,8 +5,11 @@ import { UserProvider } from '@/lib/auth';
 import { getUser } from '@/lib/db/queries';
 
 export const metadata: Metadata = {
-  title: 'Next.js SaaS Starter',
+  title: 'Bufi',
   description: 'Get started quickly with Next.js, Postgres, and Stripe.',
+  icons: {
+    icon: '/app/assets/favicon.ico',
+  },
 };
 
 export const viewport: Viewport = {

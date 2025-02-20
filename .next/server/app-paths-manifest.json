@@ -1,0 +1,8 @@
+{
+  "/(login)/sign-up/page": "app/(login)/sign-up/page.js",
+  "/(dashboard)/page": "app/(dashboard)/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/(login)/sign-in/page": "app/(login)/sign-in/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/(dashboard)/pricing/page": "app/(dashboard)/pricing/page.js"
+}

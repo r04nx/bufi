@@ -1,0 +1,31 @@
+{
+  "pages": {
+    "/(dashboard)/page": [
+      "static/chunks/717db_next_dist_9ccfbb._.js",
+      "static/chunks/app_favicon_ico_mjs_9a6375._.js",
+      "static/chunks/[root of the server]__48d195._.css",
+      "static/chunks/_8affe8._.js",
+      "static/chunks/app_layout_tsx_fd2682._.js",
+      "static/chunks/717db_next_dist_778417._.js",
+      "static/chunks/app_not-found_tsx_6dd842._.js",
+      "static/chunks/717db_next_7ec20b._.js",
+      "static/chunks/4cb14_@radix-ui_react-icons_dist_react-icons_esm_59cf04.js",
+      "static/chunks/node_modules__pnpm_7b040e._.js",
+      "static/chunks/_a34ada._.js",
+      "static/chunks/app_(dashboard)_layout_tsx_6dd842._.js",
+      "static/chunks/_5d9ded._.js",
+      "static/chunks/app_(dashboard)_page_tsx_7c4529._.js",
+      "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_c3c9ac._.js",
+      "static/chunks/717db_next_dist_compiled_react-dom-experimental_a7d92a._.js",
+      "static/chunks/717db_next_dist_compiled_c57d46._.js",
+      "static/chunks/717db_next_dist_client_components_router-reducer_87274d._.js",
+      "static/chunks/717db_next_dist_client_components_react-dev-overlay_7146c4._.js",
+      "static/chunks/717db_next_dist_client_components_6f8d78._.js",
+      "static/chunks/717db_next_dist_client_6599fd._.js",
+      "static/chunks/717db_next_dist_a0bedc._.js",
+      "static/chunks/61dca_@swc_helpers_cjs_e27e0a._.js",
+      "static/chunks/_e69f0d._.js",
+      "static/chunks/_bb744e._.js"
+    ]
+  }
+}

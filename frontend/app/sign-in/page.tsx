@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
 import Image from "next/image"
 import { useAuth } from "@/lib/auth-context"
+import { LoadingSpinner, FullPageLoader } from "@/components/ui/loading-spinner"
 
 export default function SignIn() {
   const router = useRouter()
@@ -31,18 +32,14 @@ export default function SignIn() {
 
       await signIn(email, password)
       
-      toast({
-        title: "Success",
-        description: "Successfully signed in!",
-        variant: "default",
-      })
+      // Show full page loader while redirecting
+      return <FullPageLoader />
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to sign in",
         variant: "destructive",
       })
-    } finally {
       setLoading(false)
     }
   }
@@ -104,7 +101,10 @@ export default function SignIn() {
             </div>
             <Button className="w-full" type="submit" disabled={loading}>
               {loading ? (
-                "Signing in..."
+                <div className="flex items-center gap-2">
+                  <LoadingSpinner />
+                  <span>Signing in...</span>
+                </div>
               ) : (
                 <>
                   Sign In

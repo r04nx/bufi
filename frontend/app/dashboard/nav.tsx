@@ -2,25 +2,20 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, Building2, CreditCard, FileText, Home, LineChart, Settings, Users } from "lucide-react"
-
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import {
+  BarChart3,
+  CreditCard,
+  DollarSign,
+  Download,
+  Users,
+  Settings,
+} from "lucide-react"
 
 const items = [
   {
     title: "Overview",
     href: "/dashboard",
-    icon: Home,
-  },
-  {
-    title: "Financial Health",
-    href: "/dashboard/financial-health",
-    icon: LineChart,
-  },
-  {
-    title: "Cash Flow",
-    href: "/dashboard/cash-flow",
     icon: BarChart3,
   },
   {
@@ -29,19 +24,19 @@ const items = [
     icon: Users,
   },
   {
-    title: "Invoices",
-    href: "/dashboard/invoices",
-    icon: FileText,
-  },
-  {
-    title: "Banking",
-    href: "/dashboard/banking",
+    title: "Transactions",
+    href: "/dashboard/transactions",
     icon: CreditCard,
   },
   {
-    title: "Business Profile",
-    href: "/dashboard/profile",
-    icon: Building2,
+    title: "Revenue",
+    href: "/dashboard/revenue",
+    icon: DollarSign,
+  },
+  {
+    title: "Reports",
+    href: "/dashboard/reports",
+    icon: Download,
   },
   {
     title: "Settings",
@@ -54,23 +49,27 @@ export function DashboardNav() {
   const pathname = usePathname()
 
   return (
-    <div className="flex h-full flex-col gap-2 p-4">
-      <div className="flex-1">
-        {items.map((item) => (
-          <Button
-            key={item.href}
-            variant={pathname === item.href ? "secondary" : "ghost"}
-            className={cn("w-full justify-start gap-2", pathname === item.href && "bg-primary/10")}
-            asChild
+    <nav className="grid items-start gap-2">
+      {items.map((item, index) => {
+        const Icon = item.icon
+        return (
+          <Link
+            key={index}
+            href={item.href}
           >
-            <Link href={item.href}>
-              <item.icon className="h-4 w-4" />
-              {item.title}
-            </Link>
-          </Button>
-        ))}
-      </div>
-    </div>
+            <span
+              className={cn(
+                "group flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+                pathname === item.href ? "bg-accent" : "transparent"
+              )}
+            >
+              <Icon className="mr-2 h-4 w-4" />
+              <span>{item.title}</span>
+            </span>
+          </Link>
+        )
+      })}
+    </nav>
   )
 }
 

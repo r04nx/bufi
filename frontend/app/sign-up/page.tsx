@@ -4,16 +4,18 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import { authApi } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
+import { useAuth } from "@/lib/auth-context"
 import Image from "next/image"
+import { LoadingSpinner, FullPageLoader } from "@/components/ui/loading-spinner"
 
 export default function SignUp() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const { signUp } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -21,43 +23,24 @@ export default function SignUp() {
 
     try {
       const formData = new FormData(e.currentTarget)
-      const password = formData.get('password') as string
-      const confirmPassword = formData.get('confirm-password') as string
+      const email = formData.get('email')?.toString().trim() || ''
+      const password = formData.get('password')?.toString() || ''
+      const businessName = formData.get('business-name')?.toString().trim() || ''
 
-      if (password !== confirmPassword) {
-        throw new Error('Passwords do not match')
+      if (!email || !password || !businessName) {
+        throw new Error('All fields are required')
       }
 
-      const data = {
-        business_name: formData.get('business-name') as string,
-        email: formData.get('email') as string,
-        password: password
-      }
-
-      const response = await authApi.register(data)
+      await signUp(email, password, businessName)
       
-      if (response && response.token) {
-        // Store the token with its type
-        localStorage.setItem('token', `${response.token_type} ${response.token}`)
-        
-        // Show success message
-        toast({
-          title: "Success",
-          description: "Account created successfully!",
-          variant: "default",
-        })
-
-        // Redirect to onboarding
-        router.push('/onboarding')
-      }
-      
+      // Show full page loader while redirecting
+      return <FullPageLoader />
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to create account",
         variant: "destructive",
       })
-    } finally {
       setLoading(false)
     }
   }
@@ -136,7 +119,10 @@ export default function SignUp() {
             </div>
             <Button className="w-full" type="submit" disabled={loading}>
               {loading ? (
-                "Creating Account..."
+                <div className="flex items-center gap-2">
+                  <LoadingSpinner />
+                  <span>Creating Account...</span>
+                </div>
               ) : (
                 <>
                   Create Account

@@ -1,5 +1,5 @@
+import { AuthService } from '@/lib/services/auth-service'
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 
 export async function POST(req: Request) {
   try {
@@ -13,20 +13,26 @@ export async function POST(req: Request) {
       )
     }
 
-    const result = await auth.validateUser(email, password)
-    
-    if (!result) {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      )
-    }
+    const { token, user } = await AuthService.signIn(email, password)
 
-    return NextResponse.json(result)
+    const response = NextResponse.json({
+      user,
+      token,
+      token_type: 'Bearer'
+    })
+
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+    })
+
+    return response
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
-      { status: 500 }
+      { status: error.message === 'Invalid credentials' ? 401 : 500 }
     )
   }
 } 

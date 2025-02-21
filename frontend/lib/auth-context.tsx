@@ -3,10 +3,12 @@
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import type { AuthUser } from "@/lib/services/auth-service"
+import { LoadingSpinner, FullPageLoader } from "@/components/ui/loading-spinner"
 
 interface AuthContextType {
   user: AuthUser | null
   loading: boolean
+  hasCompletedOnboarding: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, businessName: string) => Promise<void>
   signOut: () => void
@@ -15,6 +17,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  hasCompletedOnboarding: false,
   signIn: async () => {},
   signUp: async () => {},
   signOut: () => {},
@@ -24,12 +27,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [isNavigating, setIsNavigating] = useState(false)
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false)
   const router = useRouter()
+
+  const checkOnboarding = async () => {
+    try {
+      const response = await fetch('/api/auth/check-onboarding')
+      const data = await response.json()
+      setHasCompletedOnboarding(data.hasCompletedOnboarding)
+      
+      // Redirect to onboarding if not completed
+      if (user && !data.hasCompletedOnboarding && window.location.pathname !== '/onboarding') {
+        router.push('/onboarding')
+      }
+    } catch (error) {
+      console.error('Failed to check onboarding status:', error)
+    }
+  }
 
   useEffect(() => {
     setMounted(true)
     checkAuth()
   }, [])
+
+  useEffect(() => {
+    if (user) {
+      checkOnboarding()
+    }
+  }, [user])
 
   const checkAuth = async () => {
     try {
@@ -46,20 +72,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signIn = async (email: string, password: string) => {
-    const response = await fetch('/api/auth/signin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
+    setIsNavigating(true)
+    try {
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
 
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error)
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error)
+      }
+
+      const data = await response.json()
+      setUser(data.user)
+      
+      // Check onboarding status after successful login
+      const onboardingResponse = await fetch('/api/auth/check-onboarding')
+      const { hasCompletedOnboarding } = await onboardingResponse.json()
+      
+      // Redirect based on onboarding status
+      router.push(hasCompletedOnboarding ? '/dashboard' : '/onboarding')
+    } catch (error) {
+      setIsNavigating(false)
+      throw error
     }
-
-    const data = await response.json()
-    setUser(data.user)
-    router.push('/dashboard')
   }
 
   const signUp = async (email: string, password: string, businessName: string) => {
@@ -86,14 +124,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   // Prevent hydration errors by not rendering until mounted
-  if (!mounted) {
-    return null
+  if (!mounted || loading) {
+    return <FullPageLoader />
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
-      {children}
-    </AuthContext.Provider>
+    <>
+      <AuthContext.Provider value={{ user, loading, hasCompletedOnboarding, signIn, signUp, signOut }}>
+        {children}
+      </AuthContext.Provider>
+      {isNavigating && <FullPageLoader />}
+    </>
   )
 }
 

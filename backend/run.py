@@ -23,7 +23,6 @@ def main():
         host="0.0.0.0",
         port=5000,
         reload=True,  # Enable auto-reload
-        debug=True,   # Enable debug mode
         workers=1,
         log_level="debug"
     )

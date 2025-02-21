@@ -1,13 +1,17 @@
+'use client'
+
 import type React from "react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Bell, ChevronDown, Menu, Search } from "lucide-react"
 import Image from "next/image"
+import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { DashboardNav } from "./nav"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export const metadata: Metadata = {
   title: "Dashboard - BUFI",
@@ -19,6 +23,16 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  if (!isMounted) {
+    return null // or a loading spinner
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -55,6 +69,7 @@ export default function DashboardLayout({
             </div>
           </form>
           <div className="ml-auto flex items-center gap-4">
+            <ThemeToggle />
             <Button variant="outline" size="icon">
               <Bell className="h-4 w-4" />
               <span className="sr-only">Toggle notifications</span>

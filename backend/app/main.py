@@ -1,12 +1,22 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import text
 from . import db
 from .routes import auth
 from fastapi.middleware.cors import CORSMiddleware
 import os
+import logging
 
-app = FastAPI(title="Bufi API")
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(
+    title="Bufi API",
+    debug=True  # Enable debug mode
+)
 
 # Configure CORS
 app.add_middleware(
@@ -17,6 +27,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Test database connection on startup
+@app.on_event("startup")
+async def startup_event():
+    try:
+        # Initialize database
+        db.init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {str(e)}")
+        raise e
+
 # Include routers
 app.include_router(auth.router)
 
@@ -24,16 +45,15 @@ app.include_router(auth.router)
 async def health_check(db: Session = Depends(db.get_db)):
     try:
         # Test database connection
-        db.execute(text("SELECT 1"))
-        db.commit()
+        db.execute("SELECT 1")
         return {
             "status": "healthy",
-            "database": "connected",
-            "message": "API server is running and database is connected"
+            "database": "connected"
         }
     except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
         return {
             "status": "unhealthy",
             "database": "disconnected",
-            "message": str(e)
+            "error": str(e)
         } 

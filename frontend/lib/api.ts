@@ -29,9 +29,26 @@ api.interceptors.response.use(
 )
 
 export const authApi = {
-  register: async (data: any) => {
-    const response = await axios.post(`${API_URL}/api/auth/register`, data)
-    return response.data
+  register: async (data: {
+    business_name: string
+    email: string
+    password: string
+  }) => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/auth/register`,
+        data,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+      return response.data
+    } catch (error: any) {
+      console.error('Registration error:', error.response?.data || error.message)
+      throw new Error(error.response?.data?.detail || 'Failed to create account')
+    }
   },
 
   login: async (credentials: { email: string; password: string }) => {
@@ -45,10 +62,23 @@ export const authApi = {
           },
         }
       )
-      return response.data
-    } catch (error) {
-      console.error('Login API Error:', error)
-      throw error
+
+      // Validate response format
+      const data = response.data
+      if (!data?.token || !data?.token_type) {
+        throw new Error('Invalid response format from server')
+      }
+
+      return {
+        token: data.token,
+        token_type: data.token_type
+      }
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        throw new Error('Invalid email or password')
+      }
+      console.error('Login error:', error.response?.data || error.message)
+      throw new Error(error.response?.data?.detail || 'Failed to sign in')
     }
   },
 
@@ -60,6 +90,16 @@ export const authApi = {
   }) => {
     const response = await api.post('/api/business/profile', data)
     return response.data
+  },
+
+  checkOnboardingStatus: async () => {
+    try {
+      const response = await api.get('/api/auth/onboarding-status')
+      return response.data.completed
+    } catch (error) {
+      console.error('Error checking onboarding status:', error)
+      return false
+    }
   }
 }
 
@@ -74,5 +114,22 @@ export const businessApi = {
     return response.data
   }
 }
+
+export const onboardingApi = {
+  completeOnboarding: async (data: {
+    business_name: string;
+    phone: string;
+    industry_sector: string;
+    business_size: string;
+  }) => {
+    try {
+      const response = await api.post('/api/onboarding/complete', data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error completing onboarding:', error);
+      throw new Error(error.response?.data?.detail || 'Failed to complete onboarding');
+    }
+  }
+};
 
 export default api 

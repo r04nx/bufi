@@ -2,6 +2,8 @@ import type React from "react"
 import { Inter } from "next/font/google"
 import { ClientProviders } from "@/providers/client-providers"
 import "./globals.css"
+import { AuthProvider } from "@/lib/auth-context"
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -25,9 +27,12 @@ export default function RootLayout({
         <link rel="icon" href="/assets/favicon.ico" />
       </head>
       <body className={inter.className} suppressHydrationWarning>
-        <ClientProviders>
-          <div className="min-h-screen bg-background">{children}</div>
-        </ClientProviders>
+        <AuthProvider>
+          <ClientProviders>
+            <div className="min-h-screen bg-background">{children}</div>
+          </ClientProviders>
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   )

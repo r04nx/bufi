@@ -4,16 +4,17 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import { authApi } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
 import Image from "next/image"
+import { useAuth } from "@/lib/auth-context"
 
 export default function SignIn() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const { signIn } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -21,47 +22,21 @@ export default function SignIn() {
 
     try {
       const formData = new FormData(e.currentTarget)
-      const credentials = {
-        email: formData.get('email')?.toString().trim() || '',
-        password: formData.get('password')?.toString() || ''
-      }
+      const email = formData.get('email')?.toString().trim() || ''
+      const password = formData.get('password')?.toString() || ''
 
-      if (!credentials.email || !credentials.password) {
+      if (!email || !password) {
         throw new Error('Email and password are required')
       }
 
-      const response = await authApi.login(credentials)
+      await signIn(email, password)
       
-      if (response?.token && response?.token_type) {
-        // Store the token with its type
-        localStorage.setItem('token', `${response.token_type} ${response.token}`)
-        
-        // Show success message
-        toast({
-          title: "Success",
-          description: "Successfully signed in!",
-          variant: "default",
-        })
-
-        // Check onboarding status and redirect accordingly
-        try {
-          const onboardingCompleted = await authApi.checkOnboardingStatus()
-          if (onboardingCompleted) {
-            router.push('/dashboard')
-          } else {
-            router.push('/onboarding')
-          }
-        } catch (error) {
-          console.error('Error checking onboarding status:', error)
-          // Default to onboarding if status check fails
-          router.push('/onboarding')
-        }
-      } else {
-        throw new Error('Invalid response from server')
-      }
-      
+      toast({
+        title: "Success",
+        description: "Successfully signed in!",
+        variant: "default",
+      })
     } catch (error: any) {
-      console.error('Login error:', error)
       toast({
         title: "Error",
         description: error.message || "Failed to sign in",

@@ -10,59 +10,63 @@ datasource db {
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
-  password      String
   name          String?
+  password      String
   businessName  String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   profile       Profile?
   transactions  Transaction[]
   invoices      Invoice[]
-  customers     Customer[]
-  subscription  Subscription?
+  revenues      Revenue[]
+  documents     Document[]
+  investors     Investor[]
+  taxRecords    TaxRecord[]
 }
 
 model Profile {
   id              String   @id @default(cuid())
   userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id])
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   businessAge     Int?
   industrySector  String?
-  businessSize    String?
-  gstin           String?  @unique
-  pan             String?  @unique
-  cibilScore      Int?
   employeeCount   Int?
   annualRevenue   Float?
-  businessAddress String?
-  phoneNumber     String?
+  businessType    String?
+  taxIdentifier   String?
+  address         String?
+  phone           String?
+  website         String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-}
-
-model Customer {
-  id          String    @id @default(cuid())
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  name        String
-  email       String?
-  phone       String?
-  address     String?
-  gstin       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  invoices    Invoice[]
 }
 
 model Transaction {
   id          String    @id @default(cuid())
   userId      String
   user        User      @relation(fields: [userId], references: [id])
+  date        DateTime
   amount      Float
-  type        String    // "CREDIT" or "DEBIT"
-  category    String?
+  type        TransactionType
+  category    String
+  description String
+  status      TransactionStatus
+  reference   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Revenue {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  amount      Float
+  source      String
+  date        DateTime
   description String?
-  date        DateTime  @default(now())
+  target      Float?
+  growth      Float?
+  category    String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -71,36 +75,85 @@ model Invoice {
   id          String    @id @default(cuid())
   userId      String
   user        User      @relation(fields: [userId], references: [id])
-  customerId  String
-  customer    Customer  @relation(fields: [customerId], references: [id])
   amount      Float
-  status      String    // "PAID", "PENDING", "OVERDUE"
+  status      InvoiceStatus
   dueDate     DateTime
-  items       InvoiceItem[]
+  clientName  String
+  description String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
 
-model InvoiceItem {
-  id          String   @id @default(cuid())
-  invoiceId   String
-  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
-  description String
-  quantity    Int
-  unitPrice   Float
-  amount      Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model Document {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  title       String
+  type        String
+  url         String
+  category    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
-model Subscription {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
-  plan      String   // "BASIC", "PRO", "ENTERPRISE"
-  status    String   // "ACTIVE", "CANCELLED", "EXPIRED"
-  startDate DateTime @default(now())
-  endDate   DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Investor {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  name        String
+  type        String
+  stake       Float
+  joinDate    DateTime
+  activities  InvestorActivity[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model InvestorActivity {
+  id          String    @id @default(cuid())
+  investorId  String
+  investor    Investor  @relation(fields: [investorId], references: [id])
+  type        String
+  description String
+  date        DateTime
+  amount      Float?
+  participants String[]
+  documents   String[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model TaxRecord {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  year            Int
+  quarter         Int?
+  type            String
+  amount          Float
+  status          String
+  dueDate         DateTime?
+  filingDate      DateTime?
+  documents       String[]
+  planningNotes   String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum TransactionStatus {
+  COMPLETED
+  PENDING
+  FAILED
+}
+
+enum InvoiceStatus {
+  PAID
+  PENDING
+  OVERDUE
+  CANCELLED
 } 

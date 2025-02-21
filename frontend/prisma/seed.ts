@@ -1,5 +1,5 @@
-const { PrismaClient } = require('@prisma/client')
-const { hash } = require('bcryptjs')
+import { PrismaClient } from '@prisma/client'
+import { hash } from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -14,40 +14,27 @@ async function main() {
   await prisma.user.deleteMany()
 
   // Create demo user
-  const hashedPassword = await hash('demo123', 10)
-  const demoUser = await prisma.user.create({
+  const user = await prisma.user.create({
     data: {
-      email: 'demo@example.com',
-      password: hashedPassword,
-      businessName: 'Demo Business',
-      name: 'John Doe',
+      email: 'demo@bufi.com',
+      name: 'Demo User',
+      password: await hash('demo123', 12),
+      businessName: 'BuFi Demo Business',
       profile: {
         create: {
           businessAge: 5,
           industrySector: 'Technology',
-          businessSize: 'SMALL',
-          gstin: 'GSTIN123456789',
-          pan: 'ABCDE1234F',
-          employeeCount: 10,
-          annualRevenue: 1000000,
-          businessAddress: '123 Business Street, Tech City',
-          phoneNumber: '+91-9876543210',
-        },
-      },
-      subscription: {
-        create: {
-          plan: 'PRO',
-          status: 'ACTIVE',
-          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-        },
-      },
-    },
+          employeeCount: 25,
+          annualRevenue: 1200000,
+        }
+      }
+    }
   })
 
   // Create demo customers
   const customer1 = await prisma.customer.create({
     data: {
-      userId: demoUser.id,
+      userId: user.id,
       name: 'Acme Corp',
       email: 'contact@acme.com',
       phone: '+91-1234567890',
@@ -56,32 +43,26 @@ async function main() {
     },
   })
 
-  // Create demo transactions
+  // Add sample transactions
   await prisma.transaction.createMany({
     data: [
       {
-        userId: demoUser.id,
-        amount: 50000,
+        userId: user.id,
+        date: new Date(),
+        amount: 5000,
         type: 'CREDIT',
-        category: 'SALES',
-        description: 'Payment from Acme Corp',
-        date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+        category: 'Sales',
+        description: 'Product Sale',
+        status: 'COMPLETED'
       },
-      {
-        userId: demoUser.id,
-        amount: 25000,
-        type: 'DEBIT',
-        category: 'EXPENSES',
-        description: 'Office Rent',
-        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-      },
-    ],
+      // Add more sample data...
+    ]
   })
 
   // Create demo invoice
   const invoice = await prisma.invoice.create({
     data: {
-      userId: demoUser.id,
+      userId: user.id,
       customerId: customer1.id,
       amount: 50000,
       status: 'PAID',

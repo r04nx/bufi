@@ -25,18 +25,18 @@ export async function POST(req: Request) {
 
     const body = await req.json()
 
-    // Ensure all numeric fields are properly typed
+    // Clean and validate the data
     const data = {
       userId: decoded.userId,
-      businessAge: Number(body.businessAge),
-      industrySector: body.industrySector,
-      businessSize: body.businessSize,
-      gstin: body.gstin,
-      pan: body.pan,
-      employeeCount: Number(body.employeeCount),
-      annualRevenue: Number(body.annualRevenue),
-      businessAddress: body.businessAddress,
-      phoneNumber: body.phoneNumber,
+      businessAge: body.businessAge ? Number(body.businessAge) : null,
+      industrySector: body.industrySector || null,
+      businessSize: body.businessSize || null,
+      gstin: body.gstin || null,
+      pan: body.pan || null,
+      employeeCount: body.employeeCount ? Number(body.employeeCount) : null,
+      annualRevenue: body.annualRevenue ? Number(body.annualRevenue) : null,
+      businessAddress: body.businessAddress || null,
+      phoneNumber: body.phoneNumber || null,
     }
 
     // Check if profile already exists
@@ -51,6 +51,19 @@ export async function POST(req: Request) {
         data,
       })
     } else {
+      // Check if PAN already exists (if provided)
+      if (data.pan) {
+        const existingPAN = await prisma.profile.findFirst({
+          where: { pan: data.pan },
+        })
+        if (existingPAN) {
+          return NextResponse.json(
+            { error: 'PAN number already registered' },
+            { status: 400 }
+          )
+        }
+      }
+
       profile = await prisma.profile.create({
         data,
       })

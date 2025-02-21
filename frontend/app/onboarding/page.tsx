@@ -84,12 +84,12 @@ export default function Onboarding() {
         businessAge: Number(formData.businessAge),
         industrySector: formData.industrySector,
         businessSize: formData.businessSize,
-        gstin: formData.gstin,
-        pan: formData.pan,
+        gstin: formData.gstin || null,
+        pan: formData.pan || null,
         employeeCount: Number(formData.employeeCount),
         annualRevenue: Number(formData.annualRevenue),
-        businessAddress: formData.businessAddress,
-        phoneNumber: formData.phoneNumber,
+        businessAddress: formData.businessAddress || null,
+        phoneNumber: formData.phoneNumber || null,
       }
 
       const response = await fetch('/api/onboarding', {
@@ -98,9 +98,10 @@ export default function Onboarding() {
         body: JSON.stringify(cleanedData),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to save profile')
+        throw new Error(data.error || 'Failed to save profile')
       }
 
       toast({
@@ -114,7 +115,7 @@ export default function Onboarding() {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to save profile",
+        description: error.message,
         variant: "destructive",
       })
     } finally {

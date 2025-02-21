@@ -20,23 +20,27 @@ export async function middleware(request: NextRequest) {
   }
 
   if (token) {
-    // Check if user has completed onboarding
-    const response = await fetch(`${request.nextUrl.origin}/api/auth/check-onboarding`, {
-      headers: {
-        Cookie: `token=${token}`,
-      },
-    })
-    
-    const { hasCompletedOnboarding } = await response.json()
+    try {
+      // Check if user has completed onboarding
+      const response = await fetch(`${request.nextUrl.origin}/api/auth/check-onboarding`, {
+        headers: {
+          Cookie: `token=${token}`,
+        },
+      })
+      
+      const { hasCompletedOnboarding } = await response.json()
 
-    // If onboarding is not completed and user is not on onboarding page
-    if (!hasCompletedOnboarding && !request.nextUrl.pathname.startsWith('/onboarding')) {
-      return NextResponse.redirect(new URL('/onboarding', request.url))
-    }
+      // If onboarding is not completed and user is not on onboarding page
+      if (!hasCompletedOnboarding && !request.nextUrl.pathname.startsWith('/onboarding')) {
+        return NextResponse.redirect(new URL('/onboarding', request.url))
+      }
 
-    // If onboarding is completed and user tries to access onboarding page
-    if (hasCompletedOnboarding && request.nextUrl.pathname.startsWith('/onboarding')) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      // If onboarding is completed and user tries to access onboarding page
+      if (hasCompletedOnboarding && request.nextUrl.pathname.startsWith('/onboarding')) {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+    } catch (error) {
+      console.error('Onboarding check failed:', error)
     }
   }
 
@@ -45,10 +49,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/dashboard/:path*',
-    '/settings/:path*',
-    '/onboarding/:path*',
-    '/sign-in',
-    '/sign-up',
+    '/((?!api|_next/static|_next/image|assets|favicon.ico).*)',
   ],
 } 

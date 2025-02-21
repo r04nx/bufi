@@ -14,6 +14,7 @@ import { type Step, Stepper } from "./stepper"
 import { toast } from "@/components/ui/use-toast"
 import { useAuth } from "@/lib/auth-context"
 import { LoadingSpinner, FullPageLoader } from "@/components/ui/loading-spinner"
+import { LoadingScreen } from '@/components/ui/loading-screen'
 
 const steps: Step[] = [
   {
@@ -43,23 +44,29 @@ const steps: Step[] = [
   },
 ]
 
-export default function Onboarding() {
+export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [formData, setFormData] = useState({
     businessAge: 0,
     industrySector: '',
-    businessSize: '',
-    gstin: '',
-    pan: '',
+    businessType: '',
     employeeCount: 0,
     annualRevenue: 0,
+    gstin: '',
+    pan: '',
     businessAddress: '',
     phoneNumber: '',
   })
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, hasCompletedOnboarding } = useAuth()
   const [loading, setLoading] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
+
+  // Redirect to dashboard if onboarding is already completed
+  if (hasCompletedOnboarding) {
+    router.push('/dashboard')
+    return <LoadingScreen />
+  }
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({
@@ -83,11 +90,10 @@ export default function Onboarding() {
       const cleanedData = {
         businessAge: Number(formData.businessAge),
         industrySector: formData.industrySector,
-        businessSize: formData.businessSize,
-        gstin: formData.gstin || null,
-        pan: formData.pan || null,
+        businessType: formData.businessType,
         employeeCount: Number(formData.employeeCount),
         annualRevenue: Number(formData.annualRevenue),
+        taxIdentifier: formData.gstin || formData.pan || null,
         businessAddress: formData.businessAddress || null,
         phoneNumber: formData.phoneNumber || null,
       }
@@ -98,10 +104,9 @@ export default function Onboarding() {
         body: JSON.stringify(cleanedData),
       })
 
-      const data = await response.json()
-
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to save profile')
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to save profile')
       }
 
       toast({

@@ -22,6 +22,7 @@ model User {
   documents     Document[]
   investors     Investor[]
   taxRecords    TaxRecord[]
+  reports       Report[]
 }
 
 model Profile {
@@ -30,9 +31,10 @@ model Profile {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   businessAge     Int?
   industrySector  String?
+  businessSize    String?
+  businessType    String?
   employeeCount   Int?
   annualRevenue   Float?
-  businessType    String?
   taxIdentifier   String?
   address         String?
   phone           String?
@@ -47,10 +49,10 @@ model Transaction {
   user        User      @relation(fields: [userId], references: [id])
   date        DateTime
   amount      Float
-  type        TransactionType
+  type        String
   category    String
   description String
-  status      TransactionStatus
+  status      String
   reference   String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -76,7 +78,7 @@ model Invoice {
   userId      String
   user        User      @relation(fields: [userId], references: [id])
   amount      Float
-  status      InvoiceStatus
+  status      String
   dueDate     DateTime
   clientName  String
   description String?
@@ -97,63 +99,72 @@ model Document {
 }
 
 model Investor {
-  id          String    @id @default(cuid())
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  name        String
-  type        String
-  stake       Float
-  joinDate    DateTime
-  activities  InvestorActivity[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id             String       @id @default(cuid())
+  name           String
+  type           String
+  representative String
+  email          String
+  phone          String?
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  investments    Investment[]
+  activities     InvestorActivity[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Investment {
+  id         String   @id @default(cuid())
+  amount     Float
+  equity     Float
+  round      String
+  date       DateTime
+  investorId String
+  investor   Investor @relation(fields: [investorId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model InvestorActivity {
-  id          String    @id @default(cuid())
-  investorId  String
-  investor    Investor  @relation(fields: [investorId], references: [id])
-  type        String
-  description String
-  date        DateTime
-  amount      Float?
-  participants String[]
-  documents   String[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id            String   @id @default(cuid())
+  type          String
+  description   String
+  date          DateTime
+  investorId    String
+  investor      Investor @relation(fields: [investorId], references: [id])
+  amount        Float?
+  participants  String?  // Will store JSON array as string
+  documents     String?  // Will store JSON array as string
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model TaxRecord {
-  id              String    @id @default(cuid())
-  userId          String
-  user            User      @relation(fields: [userId], references: [id])
-  year            Int
-  quarter         Int?
-  type            String
-  amount          Float
-  status          String
-  dueDate         DateTime?
-  filingDate      DateTime?
-  documents       String[]
-  planningNotes   String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  year           Int
+  quarter        Int?
+  type           String
+  amount         Float
+  status         String
+  filingDate     DateTime?
+  documents      String?   // Will store JSON array as string
+  planningNotes  String?
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
-enum TransactionType {
-  CREDIT
-  DEBIT
-}
-
-enum TransactionStatus {
-  COMPLETED
-  PENDING
-  FAILED
-}
-
-enum InvoiceStatus {
-  PAID
-  PENDING
-  OVERDUE
-  CANCELLED
+model Report {
+  id        String   @id @default(cuid())
+  title     String
+  type      String
+  format    String
+  dateRange String   // Will store JSON object as string
+  status    String   @default("pending")
+  url       String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 } 

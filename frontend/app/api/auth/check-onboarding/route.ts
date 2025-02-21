@@ -17,12 +17,20 @@ export async function GET() {
       return NextResponse.json({ hasCompletedOnboarding: false })
     }
 
-    // Check if user has a profile
+    // Check if user has a profile with required fields
     const profile = await prisma.profile.findUnique({
       where: { userId: decoded.userId },
     })
 
-    return NextResponse.json({ hasCompletedOnboarding: !!profile })
+    const hasCompletedOnboarding = !!(
+      profile?.businessAge &&
+      profile?.industrySector &&
+      profile?.employeeCount &&
+      profile?.annualRevenue &&
+      profile?.businessType
+    )
+
+    return NextResponse.json({ hasCompletedOnboarding })
   } catch (error) {
     console.error('Check onboarding error:', error)
     return NextResponse.json({ hasCompletedOnboarding: false })

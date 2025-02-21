@@ -34,33 +34,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch('/api/auth/check-session')
-      if (response.ok) {
-        const data = await response.json()
-        setUser(data.user)
-        if (data.user) {
-          await checkOnboarding()
-        }
-      }
+      const [authResponse, onboardingResponse] = await Promise.all([
+        fetch('/api/auth/me'),
+        fetch('/api/auth/check-onboarding')
+      ])
+
+      const { user } = await authResponse.json()
+      const { hasCompletedOnboarding: onboardingStatus } = await onboardingResponse.json()
+
+      setUser(user)
+      setHasCompletedOnboarding(onboardingStatus)
     } catch (error) {
-      console.error('Auth check error:', error)
+      console.error('Auth check failed:', error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const checkOnboarding = async () => {
-    try {
-      const response = await fetch('/api/auth/check-onboarding')
-      const data = await response.json()
-      setHasCompletedOnboarding(data.hasCompletedOnboarding)
-      
-      // Only redirect if we're not already on the onboarding page
-      if (!data.hasCompletedOnboarding && window.location.pathname !== '/onboarding') {
-        router.push('/onboarding')
-      }
-    } catch (error) {
-      console.error('Failed to check onboarding status:', error)
     }
   }
 
@@ -88,9 +75,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Check onboarding status after successful login
       const onboardingResponse = await fetch('/api/auth/check-onboarding')
-      const { hasCompletedOnboarding } = await onboardingResponse.json()
+      const { hasCompletedOnboarding: onboardingStatus } = await onboardingResponse.json()
       
-      if (hasCompletedOnboarding) {
+      setHasCompletedOnboarding(onboardingStatus)
+      
+      if (onboardingStatus) {
         router.push('/dashboard')
       } else {
         router.push('/onboarding')

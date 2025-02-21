@@ -25,51 +25,37 @@ export async function POST(req: Request) {
 
     const body = await req.json()
 
-    // Clean and validate the data
-    const data = {
-      userId: decoded.userId,
-      businessAge: body.businessAge ? Number(body.businessAge) : null,
-      industrySector: body.industrySector || null,
-      businessSize: body.businessSize || null,
-      gstin: body.gstin || null,
-      pan: body.pan || null,
-      employeeCount: body.employeeCount ? Number(body.employeeCount) : null,
-      annualRevenue: body.annualRevenue ? Number(body.annualRevenue) : null,
-      businessAddress: body.businessAddress || null,
-      phoneNumber: body.phoneNumber || null,
-    }
-
-    // Check if profile already exists
+    // Check if profile exists
     const existingProfile = await prisma.profile.findUnique({
       where: { userId: decoded.userId },
     })
 
-    let profile
-    if (existingProfile) {
-      profile = await prisma.profile.update({
-        where: { userId: decoded.userId },
-        data,
-      })
-    } else {
-      // Check if PAN already exists (if provided)
-      if (data.pan) {
-        const existingPAN = await prisma.profile.findFirst({
-          where: { pan: data.pan },
-        })
-        if (existingPAN) {
-          return NextResponse.json(
-            { error: 'PAN number already registered' },
-            { status: 400 }
-          )
-        }
-      }
-
-      profile = await prisma.profile.create({
-        data,
-      })
+    const profileData = {
+      userId: decoded.userId,
+      businessAge: body.businessAge,
+      industrySector: body.industrySector,
+      businessType: body.businessType,
+      employeeCount: body.employeeCount,
+      annualRevenue: body.annualRevenue,
+      taxIdentifier: body.gstin || body.pan || null,
+      address: body.businessAddress || null,
+      phone: body.phoneNumber || null,
     }
 
-    return NextResponse.json({ profile })
+    if (existingProfile) {
+      // Update existing profile
+      const profile = await prisma.profile.update({
+        where: { userId: decoded.userId },
+        data: profileData,
+      })
+      return NextResponse.json(profile)
+    } else {
+      // Create new profile
+      const profile = await prisma.profile.create({
+        data: profileData,
+      })
+      return NextResponse.json(profile)
+    }
   } catch (error: any) {
     console.error('Onboarding error:', error)
     return NextResponse.json(

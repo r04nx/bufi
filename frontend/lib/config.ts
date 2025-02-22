@@ -10,4 +10,7 @@ export const config = {
     nextAuthUrl: process.env.NEXTAUTH_URL || 'http://localhost:3000',
     nextAuthSecret: process.env.NEXTAUTH_SECRET || 'your-super-secret-key-here'
   }
-} 
+}
+
+export const GEMINI_API_KEY = process.env.GEMINI_API_KEY!
+export const APP_URL = process.env.NEXT_PUBLIC_APP_URL! 

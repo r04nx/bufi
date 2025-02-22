@@ -14,11 +14,15 @@ import {
   Sun,
   Moon,
   Laptop,
+  Crown,
+  CreditCard,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { FinSage } from "./components/fin-sage"
 import { UserNav } from "./user-nav"
+import { PlansMenu } from "./components/plans-menu"
+import { BillingMenu } from "./components/billing-menu"
 import { useTheme } from "next-themes"
 import {
   DropdownMenu,
@@ -27,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { LoadingScreen } from "@/components/ui/loading-screen"
+import { Logo } from "./components/logo"
 
 const sidebarItems = [
   {
@@ -61,6 +66,19 @@ const sidebarItems = [
   },
 ]
 
+const subscriptionItems = [
+  {
+    title: "Plans & Usage",
+    component: PlansMenu,
+    icon: Crown,
+  },
+  {
+    title: "Billing",
+    component: BillingMenu,
+    icon: CreditCard,
+  },
+]
+
 export default function DashboardLayout({
   children,
 }: {
@@ -92,7 +110,11 @@ export default function DashboardLayout({
         isSidebarOpen ? "w-64" : "w-16"
       )}>
         <div className="p-4 flex justify-between items-center">
-          {isSidebarOpen && <h1 className="font-bold text-lg">BuFi</h1>}
+          {isSidebarOpen ? (
+            <Logo />
+          ) : (
+            <Logo showText={false} />
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -119,6 +141,19 @@ export default function DashboardLayout({
               {isSidebarOpen && <span>{item.title}</span>}
             </Link>
           ))}
+
+          {/* Divider */}
+          <div className="my-4 border-t" />
+
+          {/* Subscription Items */}
+          {subscriptionItems.map((item) => {
+            const Component = item.component
+            return (
+              <div key={item.title}>
+                {Component && <Component />}
+              </div>
+            )
+          })}
         </nav>
 
         {/* Bottom Section */}

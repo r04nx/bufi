@@ -23,6 +23,8 @@ model User {
   investors     Investor[]
   taxRecords    TaxRecord[]
   reports       Report[]
+  subscription  Subscription?
+  aiCreditsUsed Int       @default(0)
 }
 
 model Profile {
@@ -167,4 +169,48 @@ model Report {
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum PlanType {
+  FREE
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
+enum BillingPeriod {
+  MONTHLY
+  ANNUAL
+}
+
+model SubscriptionPlan {
+  id              String    @id @default(cuid())
+  name            String
+  type            PlanType
+  price           Float
+  billingPeriod   BillingPeriod
+  features        String    // JSON array of features
+  maxUsers        Int       // For organization plans
+  maxTransactions Int
+  apiAccess       Boolean   @default(false)
+  customReports   Boolean   @default(false)
+  aiCredits       Int       // Number of AI queries allowed
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  subscriptions   Subscription[]
+}
+
+model Subscription {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  planId          String
+  plan            SubscriptionPlan @relation(fields: [planId], references: [id])
+  status          String    // ACTIVE, CANCELLED, PAST_DUE
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean  @default(false)
+  aiCreditsUsed      Int      @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 } 

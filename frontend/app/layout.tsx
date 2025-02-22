@@ -4,6 +4,7 @@ import { ClientProviders } from "@/providers/client-providers"
 import "./globals.css"
 import { AuthProvider } from "@/lib/auth-context"
 import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "sonner"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -32,6 +33,7 @@ export default function RootLayout({
             <div className="min-h-screen bg-background">{children}</div>
           </ClientProviders>
           <Toaster />
+          <SonnerToaster />
         </AuthProvider>
       </body>
     </html>

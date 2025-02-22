@@ -1,18 +1,8 @@
 'use client'
 
 import { useState } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
 import {
   Select,
   SelectContent,
@@ -21,120 +11,110 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import { DatePickerWithRange } from "@/components/ui/date-range-picker"
+import { Label } from "@/components/ui/label"
+import { DatePicker } from "@/components/ui/date-picker"
+import { X } from "lucide-react"
+import { toast } from "sonner"
 
-const formSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  type: z.string().min(1, "Type is required"),
-  dateRange: z.object({
-    from: z.date(),
-    to: z.date(),
-  }),
-  format: z.string().min(1, "Format is required"),
-})
+interface ReportFormProps {
+  onClose: () => void
+  onGenerate: () => void
+}
 
-export function ReportForm({ onSubmit }: { onSubmit: (data: any) => void }) {
-  const [isLoading, setIsLoading] = useState(false)
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+export function ReportForm({ onClose, onGenerate }: ReportFormProps) {
+  const [startDate, setStartDate] = useState<Date>()
+  const [endDate, setEndDate] = useState<Date>()
+  const [formData, setFormData] = useState({
+    type: "",
+    name: "",
   })
 
-  async function handleSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true)
-    try {
-      await onSubmit(values)
-    } catch (error) {
-      console.error(error)
-    } finally {
-      setIsLoading(false)
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Form validation
+    if (!formData.type || !formData.name || !startDate || !endDate) {
+      toast.error("Please fill in all fields")
+      return
     }
+
+    if (startDate > endDate) {
+      toast.error("Start date cannot be after end date")
+      return
+    }
+
+    // Show loading state
+    toast.promise(
+      // Simulate API call
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+      {
+        loading: 'Generating report...',
+        success: () => {
+          onGenerate()
+          onClose()
+          return 'Report generated successfully!'
+        },
+        error: 'Failed to generate report',
+      }
+    )
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Report Title</FormLabel>
-              <FormControl>
-                <Input placeholder="Q1 Financial Report" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Report Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select report type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="financial">Financial Report</SelectItem>
-                  <SelectItem value="tax">Tax Report</SelectItem>
-                  <SelectItem value="custom">Custom Report</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="dateRange"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Date Range</FormLabel>
-              <FormControl>
-                <DatePickerWithRange 
-                  date={field.value}
-                  onDateChange={field.onChange}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="format"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Format</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select format" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="pdf">PDF</SelectItem>
-                  <SelectItem value="excel">Excel</SelectItem>
-                  <SelectItem value="csv">CSV</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" disabled={isLoading}>
-          Generate Report
+    <Card className="border-t-4 border-t-orange-500">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Generate New Report</CardTitle>
+        <Button variant="ghost" size="icon" onClick={onClose}>
+          <X className="h-4 w-4" />
         </Button>
-      </form>
-    </Form>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Report Type</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select report type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="financial">Financial Performance</SelectItem>
+                <SelectItem value="tax">Tax Summary</SelectItem>
+                <SelectItem value="investor">Investor Update</SelectItem>
+                <SelectItem value="custom">Custom Report</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Report Name</Label>
+            <Input 
+              placeholder="Enter report name"
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Start Date</Label>
+              <DatePicker date={startDate} setDate={setStartDate} />
+            </div>
+            <div className="space-y-2">
+              <Label>End Date</Label>
+              <DatePicker date={endDate} setDate={setEndDate} />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button type="submit" className="bg-orange-500 hover:bg-orange-600">
+              Generate Report
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   )
 } 

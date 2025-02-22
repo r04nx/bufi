@@ -38,7 +38,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <>
+    <div className="container mx-auto p-6">
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
@@ -81,7 +81,7 @@ export default function DashboardPage() {
         </Tabs>
       </div>
       <FinSage />
-    </>
+    </div>
   )
 }
 

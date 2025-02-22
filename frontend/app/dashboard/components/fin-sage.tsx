@@ -1,206 +1,244 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  Bot,
-  Send,
-  Maximize2,
-  Minimize2,
-  Sparkles,
-  LineChart,
-  Brain,
-  MessageSquare,
-} from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
+import { Bot, Send, X, Brain } from "lucide-react"
+import { FinSageIcon } from '@/components/icons'
 
 interface Message {
-  id: string
-  type: 'user' | 'assistant'
-  content: string
+  text: string
+  isBot: boolean
   timestamp: Date
+  citations?: Array<{
+    startIndex: number
+    endIndex: number
+    uri: string
+    license?: string
+  }>
 }
 
-interface FinancialContext {
-  revenue: number
-  cashFlow: number
-  topExpenses: { category: string; amount: number }[]
-  recentTransactions: { description: string; amount: number }[]
-}
-
-const financialContext: FinancialContext = {
-  revenue: 1200000,
-  cashFlow: 250000,
-  topExpenses: [
-    { category: "Payroll", amount: 450000 },
-    { category: "Marketing", amount: 120000 },
-    { category: "Operations", amount: 180000 },
-  ],
-  recentTransactions: [
-    { description: "Client Payment", amount: 15000 },
-    { description: "Software Subscription", amount: -2000 },
-  ],
+interface GeminiResponse {
+  candidates: Array<{
+    content: {
+      parts: Array<{
+        text: string
+      }>
+      role: string
+    }
+    finishReason: string
+    citationMetadata?: {
+      citationSources: Array<{
+        startIndex: number
+        endIndex: number
+        uri: string
+        license?: string
+      }>
+    }
+  }>
 }
 
 export function FinSage() {
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: '1',
-      type: 'assistant',
-      content: "Hello! I'm FinSage, your financial AI assistant. I can help you analyze your business finances and suggest next best actions. What would you like to know?",
-      timestamp: new Date(),
-    },
+      text: "Hi! I'm FinSage, your AI financial assistant. I can help analyze your finances and provide insights. How can I help you today?",
+      isBot: true,
+      timestamp: new Date()
+    }
   ])
-  const [inputValue, setInputValue] = useState("")
-  const [isTyping, setIsTyping] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+  const [input, setInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    scrollToBottom()
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
   }, [messages])
 
-  const generateResponse = async (userMessage: string) => {
-    // Simulate AI response based on context
-    setIsTyping(true)
-    await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
+  const sendMessage = async () => {
+    if (!input.trim() || isLoading) return
 
-    let response = ""
-    const lowercaseMessage = userMessage.toLowerCase()
-
-    if (lowercaseMessage.includes("cash flow")) {
-      response = `Your current cash flow is ${formatCurrency(financialContext.cashFlow)}. Based on your recent transactions, I suggest monitoring your software subscriptions as they've increased by 15% this quarter.`
-    } else if (lowercaseMessage.includes("next best action") || lowercaseMessage.includes("suggest")) {
-      response = "Based on your financial data, here are my top suggestions:\n1. Consider negotiating better terms with your top vendors\n2. There's an opportunity to optimize your marketing spend\n3. Your cash reserves could be better utilized in short-term investments"
-    } else if (lowercaseMessage.includes("revenue")) {
-      response = `Your current revenue is ${formatCurrency(financialContext.revenue)}. You're tracking 12% above last year's performance. Key growth areas are in product sales and enterprise services.`
-    } else {
-      response = "I understand you're asking about your finances. Could you please be more specific about what you'd like to know? I can help with cash flow analysis, revenue insights, or suggest next best actions."
-    }
-
-    setIsTyping(false)
-    return response
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!inputValue.trim()) return
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: inputValue,
-      timestamp: new Date(),
+    const userMessage = {
+      text: input,
+      isBot: false,
+      timestamp: new Date()
     }
 
     setMessages(prev => [...prev, userMessage])
-    setInputValue("")
+    setInput("")
+    setIsLoading(true)
 
-    const response = await generateResponse(inputValue)
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      type: 'assistant',
-      content: response,
-      timestamp: new Date(),
+    try {
+      const response = await fetch('/api/bot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: input })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to get response')
+      }
+
+      const data: { response: GeminiResponse } = await response.json()
+      const botResponse = data.response.candidates[0]
+      
+      setMessages(prev => [...prev, {
+        text: botResponse.content.parts[0].text,
+        isBot: true,
+        timestamp: new Date(),
+        citations: botResponse.citationMetadata?.citationSources
+      }])
+    } catch (error) {
+      console.error('Chat error:', error)
+      setMessages(prev => [...prev, {
+        text: "Sorry, I encountered an error. Please try again.",
+        isBot: true,
+        timestamp: new Date()
+      }])
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    setMessages(prev => [...prev, assistantMessage])
+  if (!isOpen) {
+    return (
+      <Button
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-shadow bg-gradient-to-r from-orange-500 to-orange-600"
+      >
+        <Avatar className="h-10 w-10">
+          <AvatarFallback className="bg-transparent">
+            <FinSageIcon className="h-6 w-6 text-white" />
+          </AvatarFallback>
+        </Avatar>
+      </Button>
+    )
   }
 
   return (
-    <Card className={`fixed right-4 bottom-4 z-50 transition-all duration-300 ${
-      isExpanded ? 'w-96 h-[600px]' : 'w-64 h-12'
-    }`}>
-      <div className="flex items-center justify-between p-3 bg-primary text-primary-foreground rounded-t-lg">
+    <Card className="fixed bottom-4 right-4 w-[380px] h-[600px] flex flex-col shadow-lg z-50">
+      <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-t-lg">
         <div className="flex items-center gap-2">
-          <div className="relative">
-            <Avatar className="h-6 w-6 bg-primary-foreground">
-              <AvatarImage src="/assets/finsage-icon.png" />
-              <AvatarFallback>
-                <Brain className="h-4 w-4 text-primary" />
-              </AvatarFallback>
-            </Avatar>
-            <span className="absolute -bottom-1 -right-1 h-2.5 w-2.5 rounded-full bg-green-500 ring-1 ring-white" />
+          <Avatar className="h-8 w-8 bg-white/10">
+            <AvatarFallback>
+              <FinSageIcon className="h-5 w-5" />
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h2 className="font-semibold">FinSage Assistant</h2>
           </div>
-          <span className="font-medium">FinSage</span>
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6"
-          onClick={() => setIsExpanded(!isExpanded)}
+          className="h-8 w-8 hover:bg-white/10"
+          onClick={() => setIsOpen(false)}
         >
-          {isExpanded ? (
-            <Minimize2 className="h-4 w-4" />
-          ) : (
-            <Maximize2 className="h-4 w-4" />
-          )}
+          <X className="h-4 w-4" />
         </Button>
       </div>
 
-      {isExpanded && (
-        <>
-          <ScrollArea className="flex-1 p-4 h-[500px]">
-            <div className="space-y-4">
-              {messages.map((message) => (
+      <ScrollArea className="flex-1 p-4">
+        <div className="space-y-4">
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={`flex ${message.isBot ? "justify-start" : "justify-end"}`}
+            >
+              <div className={`flex items-start gap-2 max-w-[85%] ${message.isBot ? "flex-row" : "flex-row-reverse"}`}>
+                <Avatar className="h-8 w-8 mt-1">
+                  {message.isBot ? (
+                    <>
+                      <AvatarImage src="/assets/finsage-icon.png" />
+                      <AvatarFallback>
+                        <Brain className="h-4 w-4" />
+                      </AvatarFallback>
+                    </>
+                  ) : (
+                    <AvatarFallback>👤</AvatarFallback>
+                  )}
+                </Avatar>
                 <div
-                  key={message.id}
-                  className={`flex ${
-                    message.type === 'user' ? 'justify-end' : 'justify-start'
+                  className={`rounded-lg px-3 py-2 ${
+                    message.isBot
+                      ? "bg-muted"
+                      : "bg-primary text-primary-foreground"
                   }`}
                 >
-                  <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      message.type === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-line">{message.content}</p>
-                    <p className="text-xs mt-1 opacity-70">
-                      {message.timestamp.toLocaleTimeString()}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="bg-muted rounded-lg p-3">
-                    <div className="flex gap-1">
-                      <span className="w-2 h-2 bg-primary rounded-full animate-bounce" />
-                      <span className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
-                      <span className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.4s]" />
+                  <div className="whitespace-pre-wrap">{message.text}</div>
+                  {message.citations && message.citations.length > 0 && (
+                    <div className="mt-2 text-xs opacity-70">
+                      <p className="font-medium">Sources:</p>
+                      <ul className="list-disc list-inside">
+                        {message.citations.map((citation, idx) => (
+                          <li key={idx}>
+                            <a 
+                              href={citation.uri}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:underline"
+                            >
+                              {new URL(citation.uri).hostname}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
+                  )}
+                  <div className="text-xs opacity-70 mt-1">
+                    {message.timestamp.toLocaleTimeString()}
                   </div>
                 </div>
-              )}
-              <div ref={messagesEndRef} />
+              </div>
             </div>
-          </ScrollArea>
+          ))}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="flex items-start gap-2">
+                <Avatar className="h-8 w-8 mt-1">
+                  <AvatarImage src="/assets/finsage-icon.png" />
+                  <AvatarFallback>
+                    <Brain className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="bg-muted rounded-lg px-3 py-2">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce" />
+                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
+                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.4s]" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
 
-          <form onSubmit={handleSubmit} className="p-4 border-t">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Ask me anything..."
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                className="flex-1"
-              />
-              <Button type="submit" size="icon">
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-          </form>
-        </>
-      )}
+      <div className="p-4 border-t">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            sendMessage()
+          }}
+          className="flex gap-2"
+        >
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask me anything about your finances..."
+            disabled={isLoading}
+            className="flex-1"
+          />
+          <Button type="submit" size="icon" disabled={isLoading}>
+            <Send className="h-4 w-4" />
+          </Button>
+        </form>
+      </div>
     </Card>
   )
 } 

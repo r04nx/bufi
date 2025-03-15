@@ -14,4 +14,19 @@ export const INVOICE_STATUS = {
   PENDING: 'PENDING',
   OVERDUE: 'OVERDUE',
   CANCELLED: 'CANCELLED',
-} as const 
+} as const
+
+export const PLAN_TYPES = {
+  FREE: 'FREE',
+  BASIC: 'BASIC',
+  PRO: 'PRO',
+  ENTERPRISE: 'ENTERPRISE'
+} as const
+
+export const BILLING_PERIODS = {
+  MONTHLY: 'MONTHLY',
+  ANNUAL: 'ANNUAL'
+} as const
+
+export type PlanType = typeof PLAN_TYPES[keyof typeof PLAN_TYPES]
+export type BillingPeriod = typeof BILLING_PERIODS[keyof typeof BILLING_PERIODS] 

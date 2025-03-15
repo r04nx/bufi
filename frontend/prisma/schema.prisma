@@ -171,46 +171,33 @@ model Report {
   updatedAt DateTime @updatedAt
 }
 
-enum PlanType {
-  FREE
-  BASIC
-  PRO
-  ENTERPRISE
-}
+model Subscription {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  planId          String
+  plan            SubscriptionPlan @relation(fields: [planId], references: [id])
+  planType        String   // Instead of PlanType enum
+  billingPeriod   String   // Instead of BillingPeriod enum
+  startDate       DateTime
+  endDate         DateTime?
+  status          String
+  stripeCustomerId String?
+  stripeSubscriptionId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-enum BillingPeriod {
-  MONTHLY
-  ANNUAL
+  @@index([planId])
 }
 
 model SubscriptionPlan {
-  id              String    @id @default(cuid())
+  id              String   @id @default(cuid())
   name            String
-  type            PlanType
+  description     String
   price           Float
-  billingPeriod   BillingPeriod
-  features        String    // JSON array of features
-  maxUsers        Int       // For organization plans
-  maxTransactions Int
-  apiAccess       Boolean   @default(false)
-  customReports   Boolean   @default(false)
-  aiCredits       Int       // Number of AI queries allowed
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  features        String   // Store as JSON string
+  limits          String   // Store as JSON string
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   subscriptions   Subscription[]
-}
-
-model Subscription {
-  id              String    @id @default(cuid())
-  userId          String
-  user            User      @relation(fields: [userId], references: [id])
-  planId          String
-  plan            SubscriptionPlan @relation(fields: [planId], references: [id])
-  status          String    // ACTIVE, CANCELLED, PAST_DUE
-  currentPeriodStart DateTime
-  currentPeriodEnd   DateTime
-  cancelAtPeriodEnd  Boolean  @default(false)
-  aiCreditsUsed      Int      @default(0)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
 } 

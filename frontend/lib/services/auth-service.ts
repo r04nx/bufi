@@ -8,6 +8,11 @@ export type AuthUser = {
   email: string
   name: string | null
   businessName: string | null
+  subscription?: {
+    planType: string
+    status: string
+    aiCreditsUsed: number
+  }
 }
 
 export class AuthService {
@@ -34,13 +39,49 @@ export class AuthService {
       },
     })
 
+    // Get or create free plan
+    const freePlan = await prisma.subscriptionPlan.findFirst({
+      where: { name: 'Free' }
+    }) || await prisma.subscriptionPlan.create({
+      data: {
+        name: 'Free',
+        description: 'Basic plan for small businesses',
+        price: 0,
+        features: JSON.stringify([
+          'Basic financial tracking',
+          'Up to 100 transactions/month',
+          '5 AI queries/month'
+        ]),
+        limits: JSON.stringify({
+          transactions: 100,
+          aiCredits: 5,
+          users: 1
+        })
+      }
+    })
+
+    // Create subscription
+    await prisma.subscription.create({
+      data: {
+        userId: user.id,
+        planId: freePlan.id,
+        planType: 'FREE',
+        billingPeriod: 'MONTHLY',
+        startDate: new Date(),
+        status: 'ACTIVE'
+      }
+    })
+
     const token = this.generateToken(user.id)
-    return { token, user: this.sanitizeUser(user) }
+    return { token, user: await this.sanitizeUser(user.id) }
   }
 
   static async signIn(email: string, password: string) {
     const user = await prisma.user.findUnique({
       where: { email },
+      include: {
+        subscription: true
+      }
     })
 
     if (!user) {
@@ -53,7 +94,7 @@ export class AuthService {
     }
 
     const token = this.generateToken(user.id)
-    return { token, user: this.sanitizeUser(user) }
+    return { token, user: await this.sanitizeUser(user.id) }
   }
 
   static generateToken(userId: string) {
@@ -69,12 +110,28 @@ export class AuthService {
     }
   }
 
-  static sanitizeUser(user: any): AuthUser {
+  static async sanitizeUser(userId: string): Promise<AuthUser> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        subscription: true
+      }
+    })
+
+    if (!user) {
+      throw new Error('User not found')
+    }
+
     return {
       id: user.id,
       email: user.email,
       name: user.name,
       businessName: user.businessName,
+      subscription: user.subscription ? {
+        planType: user.subscription.planType,
+        status: user.subscription.status,
+        aiCreditsUsed: user.aiCreditsUsed
+      } : undefined
     }
   }
 } 

@@ -1,15 +1,13 @@
-import { PrismaClient } from '@prisma/client'
-import { hash } from 'bcryptjs'
+const { PrismaClient } = require('@prisma/client')
+const { hash } = require('bcryptjs')
 
 const prisma = new PrismaClient()
 
 async function main() {
   // Clean existing data
-  await prisma.invoiceItem.deleteMany()
+  await prisma.subscription.deleteMany()
   await prisma.invoice.deleteMany()
   await prisma.transaction.deleteMany()
-  await prisma.customer.deleteMany()
-  await prisma.subscription.deleteMany()
   await prisma.profile.deleteMany()
   await prisma.user.deleteMany()
 
@@ -31,16 +29,35 @@ async function main() {
     }
   })
 
-  // Create demo customers
-  const customer1 = await prisma.customer.create({
+  // Create subscription plan
+  const freePlan = await prisma.subscriptionPlan.create({
+    data: {
+      name: 'Free',
+      description: 'Basic plan for small businesses',
+      price: 0,
+      features: JSON.stringify([
+        'Basic financial tracking',
+        'Up to 100 transactions/month',
+        '5 AI queries/month'
+      ]),
+      limits: JSON.stringify({
+        transactions: 100,
+        aiCredits: 5,
+        users: 1
+      })
+    }
+  })
+
+  // Assign free plan to user
+  await prisma.subscription.create({
     data: {
       userId: user.id,
-      name: 'Acme Corp',
-      email: 'contact@acme.com',
-      phone: '+91-1234567890',
-      address: '456 Customer Ave, Business District',
-      gstin: 'GSTIN987654321',
-    },
+      planId: freePlan.id,
+      planType: 'FREE',
+      billingPeriod: 'MONTHLY',
+      startDate: new Date(),
+      status: 'ACTIVE'
+    }
   })
 
   // Add sample transactions
@@ -55,28 +72,27 @@ async function main() {
         description: 'Product Sale',
         status: 'COMPLETED'
       },
-      // Add more sample data...
+      {
+        userId: user.id,
+        date: new Date(Date.now() - 24 * 60 * 60 * 1000),
+        amount: 2000,
+        type: 'DEBIT',
+        category: 'Expenses',
+        description: 'Office Supplies',
+        status: 'COMPLETED'
+      }
     ]
   })
 
   // Create demo invoice
-  const invoice = await prisma.invoice.create({
+  await prisma.invoice.create({
     data: {
       userId: user.id,
-      customerId: customer1.id,
       amount: 50000,
       status: 'PAID',
-      dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 days from now
-      items: {
-        create: [
-          {
-            description: 'Consulting Services',
-            quantity: 1,
-            unitPrice: 50000,
-            amount: 50000,
-          },
-        ],
-      },
+      dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+      clientName: 'Acme Corp',
+      description: 'Consulting Services'
     },
   })
 

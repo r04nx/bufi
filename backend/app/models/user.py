@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, DateTime, func, Boolean
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 import uuid
 from ..db import Base
 
@@ -26,4 +27,6 @@ class User(Base):
     
     # New fields for onboarding
     industry_sector = Column(String, nullable=True)
-    business_size = Column(String, nullable=True) 
+    business_size = Column(String, nullable=True)
+
+    deals = relationship("Deal", back_populates="user")

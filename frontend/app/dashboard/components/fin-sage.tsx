@@ -45,7 +45,7 @@ export function FinSage() {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
-      text: "Hi! I'm FinSage, your AI financial assistant. I can help analyze your finances and provide insights. How can I help you today?",
+      text: "Welcome to the Institutional Suite. I am FinSage, your lead AI analyst. I can assist with deal valuations, market sentiment analysis, and risk assessment. How can I support your workflow today?",
       isBot: true,
       timestamp: new Date()
     }
@@ -121,8 +121,8 @@ export function FinSage() {
   }
 
   return (
-    <Card className="fixed bottom-4 right-4 w-[380px] h-[600px] flex flex-col shadow-lg z-50">
-      <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-t-lg">
+    <Card className="fixed bottom-4 right-4 w-[400px] h-[600px] flex flex-col shadow-2xl z-50 border-slate-800 bg-slate-950">
+      <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900 text-white rounded-t-lg">
         <div className="flex items-center gap-2">
           <Avatar className="h-8 w-8 bg-white/10">
             <AvatarFallback>
@@ -230,9 +230,9 @@ export function FinSage() {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask me anything about your finances..."
+            placeholder="Search deals, tickers, or analyze risk..."
             disabled={isLoading}
-            className="flex-1"
+            className="flex-1 bg-slate-900 border-slate-800 text-slate-200"
           />
           <Button type="submit" size="icon" disabled={isLoading}>
             <Send className="h-4 w-4" />

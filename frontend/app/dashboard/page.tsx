@@ -18,6 +18,11 @@ import { TaxAnalysis } from "./components/tax-analysis"
 import { Transactions } from "./components/transactions"
 import { Revenue } from "./components/revenue"
 import { FinSage } from "./components/fin-sage"
+import { MAWorkflow } from "./components/m-a-workflow"
+import { TradingTerminal } from "./components/trading-terminal"
+import { ValuationTools } from "./components/valuation-tools"
+import { VirtualDataRoom } from "./components/virtual-data-room"
+import { PortfolioRisk } from "./components/portfolio-risk"
 
 export default function DashboardPage() {
   const { user, loading } = useAuth()
@@ -41,18 +46,39 @@ export default function DashboardPage() {
     <div className="container mx-auto p-6">
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
+          <TabsList className="bg-slate-950 border border-slate-800 p-1">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="m-a">M&A Workflow</TabsTrigger>
+            <TabsTrigger value="valuation">Valuation Engine</TabsTrigger>
+            <TabsTrigger value="trading">Trading Terminal</TabsTrigger>
+            <TabsTrigger value="portfolio">Portfolio Risk</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="revenue">Revenue</TabsTrigger>
             <TabsTrigger value="health">Financial Health</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
+            <TabsTrigger value="vdr">Secure VDR</TabsTrigger>
             <TabsTrigger value="investors">Investors Corner</TabsTrigger>
             <TabsTrigger value="tax">Tax Analysis</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
             <DashboardOverview />
+          </TabsContent>
+
+          <TabsContent value="m-a">
+            <MAWorkflow />
+          </TabsContent>
+
+          <TabsContent value="trading">
+            <TradingTerminal />
+          </TabsContent>
+
+          <TabsContent value="portfolio">
+            <PortfolioRisk />
+          </TabsContent>
+
+          <TabsContent value="valuation">
+            <ValuationTools />
           </TabsContent>
 
           <TabsContent value="transactions">
@@ -69,6 +95,10 @@ export default function DashboardPage() {
 
           <TabsContent value="documents">
             <DocumentManagement />
+          </TabsContent>
+
+          <TabsContent value="vdr">
+            <VirtualDataRoom />
           </TabsContent>
 
           <TabsContent value="investors">

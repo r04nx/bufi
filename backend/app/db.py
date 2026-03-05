@@ -36,6 +36,9 @@ def get_db():
 # Initialize database
 def init_db():
     try:
+        # Import models here to ensure they are registered with Base
+        from .models import user, institutional
+
         # Create tables only if they don't exist
         Base.metadata.create_all(bind=engine, checkfirst=True)
         print("Database tables verified successfully!")

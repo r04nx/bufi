@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from . import db
-from .routes import auth
+from .routes import auth, institutional
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import logging
@@ -40,6 +40,7 @@ async def startup_event():
 
 # Include routers
 app.include_router(auth.router)
+app.include_router(institutional.router)
 
 @app.get("/api/health")
 async def health_check(db: Session = Depends(db.get_db)):
